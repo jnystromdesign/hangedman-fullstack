@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import type { PlayerStatus } from "hangedman-types";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Letters from "./components/Letters";
 import { apiClient } from "./api-client";
 
@@ -36,7 +36,7 @@ function App() {
     apiClient
       .get<PlayerStatus>("/")
       .catch((error) => {
-        setAppError(error);
+        setAppError(error.message);
       })
       .then((respons) => {
         if (respons?.data.currentProgress) {
@@ -50,7 +50,7 @@ function App() {
     apiClient
       .get<string>("/reveal-word")
       .catch((error) => {
-        setAppError(error);
+        setAppError(error.message);
       })
       .then((respons) => {
         if (respons?.data) {
@@ -73,12 +73,14 @@ function App() {
     }
   };
 
+  // Reveal word on game over
   useEffect(() => {
-    if (failstack.length <= 8) {
+    if (progress && failstack.length <= 8) {
       revealCorrectWord();
     }
   }, [failstack]);
 
+  // initial game
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
@@ -96,21 +98,11 @@ function App() {
         </div>
       )}
       {gameWon && (
-        <div
-          style={{
-            color: "white",
-            backgroundColor: "lime",
-            padding: ".25rem",
-            borderRadius: "0.5rem",
-          }}
-        >
-          <h1>Great Success!</h1>
+        <div className="dialog">
+          <h1>You are awesome! 👑</h1>
           <button onClick={resetGame}>Play again</button>
         </div>
       )}
-
-      {!gameOver && <h1>{progress}</h1>}
-
       {gameOver && fullWord && (
         <div style={{ paddingBottom: "1rem" }}>
           <h1>You lose!</h1>
@@ -121,7 +113,7 @@ function App() {
           <button onClick={resetGame}>Try again!</button>
         </div>
       )}
-
+      {!gameOver && <h1>{progress}</h1>}
       {!gameOver && (
         <div>
           <div>
@@ -133,13 +125,20 @@ function App() {
           <div>Letters not in word: {failstack.join(", ")}</div>
         </div>
       )}
+      {!gameOver && !gameWon && (
+        <>
+          <Letters
+            disabled={gameOver}
+            onPress={onKeySubmit}
+            usedLetters={lettersInUse}
+          />
 
-      <Letters
-        disabled={gameOver}
-        onPress={onKeySubmit}
-        usedLetters={lettersInUse}
-      />
-      <button onClick={resetGame}>New word please</button>
+          <p>Way too hard?</p>
+          <button className="button--textlink" onClick={resetGame}>
+            Get a new word!
+          </button>
+        </>
+      )}
     </>
   );
 }
