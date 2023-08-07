@@ -5,8 +5,12 @@ import { apiClient } from "./api-client";
 import { AppError } from "./components/AppError";
 import { DialogWinner } from "./components/dialog/Winner";
 import { DialogLoser } from "./components/dialog/Loser";
+import { DisplayAttemptLeft } from "./components/Display/AttemptsLeft";
+import { DisplayLettersNotInWord } from "./components/Display/LettersNotInWord";
+import { DisplayStatus } from "./components/Display/Status";
 
 function App() {
+  const [loadingWord, setLoadingWord] = useState(false);
   const [progress, setProgress] = useState("");
   const [failstack, setFailstack] = useState<string[]>([]);
   const [appError, setAppError] = useState<false | string>(false);
@@ -26,6 +30,10 @@ function App() {
     return !!progress && !progress.includes("*");
   }, [progress]);
 
+  const gamePlayable = useMemo(
+    () => !gameOver && !gameWon,
+    [gameOver, gameWon]
+  );
   const refreshApp = () => {
     window.location = window.location;
   };
@@ -36,6 +44,7 @@ function App() {
   };
 
   const getNewGame = () => {
+    setLoadingWord(true);
     apiClient
       .get<PlayerStatus>("/")
       .catch((error) => {
@@ -46,6 +55,9 @@ function App() {
           setProgress(respons?.data.currentProgress);
           setFailstack(respons.data.failstack);
         }
+      })
+      .finally(() => {
+        setLoadingWord(false);
       });
   };
 
@@ -94,32 +106,29 @@ function App() {
   return (
     <>
       <AppError appError={appError} refreshApp={refreshApp} />
-      <DialogWinner show={gameWon} resetGame={refreshApp} />
-      <DialogLoser
-        show={gameOver && !!fullWord}
-        resetGame={refreshApp}
+      <DisplayAttemptLeft show={gamePlayable} failstack={failstack} />
+      <DisplayLettersNotInWord
+        show={gamePlayable && !!failstack.length}
+        failstack={failstack}
+      />
+      <DialogWinner
+        show={gameWon}
+        resetGame={resetGame}
         fullWord={fullWord as string}
       />
-
-      {!gameOver && <h1>{progress}</h1>}
-      {!gameOver && (
-        <div>
-          <div>
-            Remaining attempts:{" "}
-            {Array(8 - failstack.length)
-              .fill("❤️")
-              .map((life) => life)}
-          </div>
-          <div>Letters not in word: {failstack.join(", ")}</div>
-        </div>
-      )}
-      {!gameOver && !gameWon && (
+      <DialogLoser
+        show={gameOver && !!fullWord}
+        resetGame={resetGame}
+        fullWord={fullWord as string}
+      />
+      <DisplayStatus
+        show={loadingWord || gamePlayable}
+        progress={progress}
+        loading={loadingWord}
+      />
+      {gamePlayable && (
         <>
-          <Letters
-            disabled={gameOver}
-            onPress={onKeySubmit}
-            usedLetters={lettersInUse}
-          />
+          <Letters onPress={onKeySubmit} usedLetters={lettersInUse} />
 
           <p>Way too hard?</p>
           <button className="button--textlink" onClick={resetGame}>

@@ -1,9 +1,8 @@
 export default (props: {
   usedLetters?: string[];
-  disabled: boolean;
   onPress: (letter: string) => void;
 }) => {
-  const { onPress, usedLetters, disabled } = props;
+  const { onPress, usedLetters } = props;
   let increment = 0;
   const charCodeStart = 97; // start from lowercase "a"
   const allLetters = Array.from(
@@ -16,7 +15,7 @@ export default (props: {
     <div className="letter-keys">
       {allLetters.map((letter) => (
         <button
-          disabled={disabled || isInUse(letter)}
+          disabled={isInUse(letter)}
           key={letter}
           onClick={() => onPress(letter)}
         >
