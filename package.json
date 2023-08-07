@@ -1,0 +1,13 @@
+{
+  "name": "hanged-man-mono",
+  "version": "1.0.0",
+  "description": "Mono repo for hanged man app",
+  "scripts": {
+    "dev": "pnpm run \"/^dev:.*/\"",
+    "dev:be": "pnpm --filter hanged-man-be dev",
+    "dev:fe": "pnpm --filter hanged-man-fe dev"
+  },
+  "keywords": [],
+  "author": "Joakim Nyström",
+  "license": "ISC"
+}
