@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { SuperThing } from "hangedman-types";
-import "./App.css";
+import type { PlayerStatus } from "hangedman-types";
 import Letters from "./components/Letters";
-import axios from "axios";
-import { StatusDTO } from "./types/Dto";
+import { apiClient } from "./api-client";
 
 function App() {
   const [progress, setProgress] = useState("");
-  const [failstack, setFailstack] = useState<SuperThing[]>([]);
+  const [failstack, setFailstack] = useState<string[]>([]);
+  const [appError, setAppError] = useState<false | string>(false);
   const [fullWord, setFullWord] = useState<null | string>(null);
   const initialized = useRef(false);
 
@@ -24,17 +23,21 @@ function App() {
     return progress && !progress.includes("*");
   }, [progress]);
 
-  const resetGame = () => {
-    document.cookie = "sessionId" + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  const refreshApp = () => {
     window.location = window.location;
   };
 
+  const resetGame = () => {
+    document.cookie = "sessionId" + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    refreshApp();
+  };
+
   const getNewGame = () => {
-    axios
-      .get<StatusDTO>("http://localhost:3000/", {
-        withCredentials: true,
+    apiClient
+      .get<PlayerStatus>("/")
+      .catch((error) => {
+        setAppError(error);
       })
-      .catch((error) => {})
       .then((respons) => {
         if (respons?.data.currentProgress) {
           setProgress(respons?.data.currentProgress);
@@ -44,16 +47,30 @@ function App() {
   };
 
   const revealCorrectWord = () => {
-    axios
-      .get<string>("http://localhost:3000/reveal-word", {
-        withCredentials: true,
+    apiClient
+      .get<string>("/reveal-word")
+      .catch((error) => {
+        setAppError(error);
       })
-      .catch((error) => {})
       .then((respons) => {
         if (respons?.data) {
           setFullWord(respons?.data);
         }
       });
+  };
+
+  const onKeySubmit = async (letter: string) => {
+    const respons = await apiClient
+      .post<{ playerStatus: PlayerStatus }>("/letter", {
+        letter,
+      })
+      .catch((error) => {
+        setAppError(error.message);
+      });
+    if (respons?.data) {
+      setProgress(respons.data.playerStatus.currentProgress);
+      setFailstack(respons.data.playerStatus.failstack);
+    }
   };
 
   useEffect(() => {
@@ -69,27 +86,15 @@ function App() {
     }
   }, []);
 
-  const onKeySubmit = async (letter: string) => {
-    const respons = await axios
-      .post<{ playerStatus: StatusDTO }>(
-        "http://localhost:3000/letter",
-        { letter },
-        {
-          withCredentials: true,
-        }
-      )
-      .catch((error) => {
-        console.log("error", error);
-      });
-    if (respons?.data) {
-      console.log(respons.data);
-      setProgress(respons.data.playerStatus.currentProgress);
-      setFailstack(respons.data.playerStatus.failstack);
-    }
-  };
-
   return (
     <>
+      {appError && (
+        <div>
+          <h2>We encountered a problem</h2>
+          <p>{appError} </p>
+          <button onClick={refreshApp}>Refresh app to try to fix it</button>
+        </div>
+      )}
       {gameWon && (
         <div
           style={{
@@ -119,7 +124,12 @@ function App() {
 
       {!gameOver && (
         <div>
-          <div>Remaining attempts: {8 - failstack.length}/8</div>
+          <div>
+            Remaining attempts:{" "}
+            {Array(8 - failstack.length)
+              .fill("❤️")
+              .map((life) => life)}
+          </div>
           <div>Letters not in word: {failstack.join(", ")}</div>
         </div>
       )}
