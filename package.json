@@ -5,7 +5,15 @@
   "scripts": {
     "dev": "pnpm run \"/^dev:.*/\"",
     "dev:be": "pnpm --filter hanged-man-be dev",
-    "dev:fe": "pnpm --filter hanged-man-fe dev"
+    "dev:fe": "pnpm --filter hanged-man-fe dev",
+    "build": "pnpm run \"/^build:.*/\"",
+    "build:be": "pnpm --filter hanged-man-be build",
+    "build:fe": "pnpm --filter hanged-man-fe build",
+    "start": "pnpm run \"/^start:.*/\"",
+    "start:be": "pnpm --filter hanged-man-be start",
+    "start:fe": "pnpm --filter hanged-man-fe start",
+    "prune:stack": "pnpm --filter hanged-man-be clear && pnpm store prune"
+    
   },
   "keywords": [],
   "author": "Joakim Nyström",
