@@ -14,14 +14,12 @@ import { SESSION_KEY } from "./config";
 import { getRandomWord } from "./api-client";
 import { PlayerStatus, PlayerView } from "hangedman-types";
 import { updateMaskedWord, compliesWithRules } from "./utils";
-import { RequestBodyLetter, ResponsStatus } from "./types/Requests";
+import { RequestBodyLetter, ResponsStatus } from "hangedman-types";
 
 runApp();
 
 async function runApp() {
-  const app = fastify({
-    // logger: true,
-  });
+  const app = fastify();
 
   app.register(fastifyCors, {
     origin: "http://localhost:1337",
@@ -34,14 +32,13 @@ async function runApp() {
     hook: "onRequest",
   });
 
-  app.get("/", async (req, rep): Promise<PlayerView> => {
+  app.get("/", async (req, rep): Promise<PlayerView | false> => {
     let sessionId = Number(req.cookies.sessionId);
     let playerStatus: null | PlayerStatus = null;
     if (!sessionId) {
       sessionId = Date.now();
       const word = await getRandomWord().catch((error) => {
         rep.statusCode = 500;
-        //TODO: Better error handling
         return {
           status: "Service problem",
           message:
@@ -56,8 +53,11 @@ async function runApp() {
         rep.redirect("/logout");
       });
     }
-    const { id, currentProgress, failstack } = playerStatus;
-    return { id, currentProgress, failstack };
+    if (playerStatus) {
+      const { id, currentProgress, failstack } = playerStatus;
+      return { id, currentProgress, failstack };
+    }
+    return false; // TODO: Add proper error handlings
   });
 
   app.get("/reveal-word", async (req, rep): Promise<string> => {
@@ -86,8 +86,6 @@ async function runApp() {
       playerStatus?: PlayerStatus;
     }> => {
       let sessionId = Number(req.cookies.sessionId);
-      console.log(req.cookies);
-      // if (!sessionId) rep.redirect("/");
       const playerStatus = await getPlayer(sessionId);
 
       const { letter } = req.body as RequestBodyLetter;
