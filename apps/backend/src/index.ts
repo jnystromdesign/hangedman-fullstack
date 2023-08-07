@@ -22,7 +22,7 @@ async function runApp() {
   const app = fastify();
 
   app.register(fastifyCors, {
-    origin: "http://localhost:1337",
+    origin: ["http://localhost:1337", "http://localhost:8080"],
     methods: ["POST", "GET"],
     credentials: true,
   });
