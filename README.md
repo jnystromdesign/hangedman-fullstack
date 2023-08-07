@@ -36,6 +36,12 @@ The is a mono repo using pnpm as package manager, and has a backend app in node 
 
 ### Build
 
-1. Run `pnpm build:stack` to build frontend and backend app.
-2. Run `pnpm start:stack` to start frontend and backend app.
-3. Visit `localhost:3030`
+From the root of the project:
+
+1. Run `pnpm run build` to build frontend and backend app.
+2. Run `pnpm run start` to start frontend and backend app.
+3. Visit `http://localhost:8080`. (Backend is available on `http://localhost:3000`)
+
+### Clear data from App
+
+Run `pnpm run prune:stack` which will remove the data from the backends json DB.
