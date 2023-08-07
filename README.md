@@ -31,6 +31,7 @@ The is a mono repo using pnpm as package manager, and has a backend app in node 
 
 ### Development
 
+0. Go to `/apps/backend` and copy the `exemple.env` to `.env` and replace the value for `API_KEY` an API key from [https://api-ninjas.com/profile](this service for random words). Also add a minimum 32 character string for `SESSION_KEY`.
 1. Run `pnpm dev` to start frontend and backend app.
 2. Visit `http://localhost:1337`
 
