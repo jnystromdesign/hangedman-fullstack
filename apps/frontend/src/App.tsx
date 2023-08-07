@@ -2,6 +2,9 @@ import type { PlayerStatus } from "hangedman-types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Letters from "./components/Letters";
 import { apiClient } from "./api-client";
+import { AppError } from "./components/AppError";
+import { DialogWinner } from "./components/dialog/Winner";
+import { DialogLoser } from "./components/dialog/Loser";
 
 function App() {
   const [progress, setProgress] = useState("");
@@ -20,7 +23,7 @@ function App() {
   }, [failstack]);
 
   const gameWon = useMemo(() => {
-    return progress && !progress.includes("*");
+    return !!progress && !progress.includes("*");
   }, [progress]);
 
   const refreshApp = () => {
@@ -90,29 +93,14 @@ function App() {
 
   return (
     <>
-      {appError && (
-        <div>
-          <h2>We encountered a problem</h2>
-          <p>{appError} </p>
-          <button onClick={refreshApp}>Refresh app to try to fix it</button>
-        </div>
-      )}
-      {gameWon && (
-        <div className="dialog">
-          <h1>You are awesome! 👑</h1>
-          <button onClick={resetGame}>Play again</button>
-        </div>
-      )}
-      {gameOver && fullWord && (
-        <div style={{ paddingBottom: "1rem" }}>
-          <h1>You lose!</h1>
-          <p>
-            Sorry (not sorry)! The word we were looking for were{" "}
-            <strong>{fullWord}</strong>
-          </p>
-          <button onClick={resetGame}>Try again!</button>
-        </div>
-      )}
+      <AppError appError={appError} refreshApp={refreshApp} />
+      <DialogWinner show={gameWon} resetGame={refreshApp} />
+      <DialogLoser
+        show={gameOver && !!fullWord}
+        resetGame={refreshApp}
+        fullWord={fullWord as string}
+      />
+
       {!gameOver && <h1>{progress}</h1>}
       {!gameOver && (
         <div>
