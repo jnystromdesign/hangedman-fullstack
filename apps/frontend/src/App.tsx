@@ -8,10 +8,15 @@ import { DialogLoser } from "./components/dialog/Loser";
 import { DisplayAttemptLeft } from "./components/Display/AttemptsLeft";
 import { DisplayLettersNotInWord } from "./components/Display/LettersNotInWord";
 import { DisplayStatus } from "./components/Display/Status";
+import {
+  DisplayFeedBack,
+  Feedback,
+} from "./components/Display/Feedback/Feedback";
 
 function App() {
   const [loadingWord, setLoadingWord] = useState(false);
   const [progress, setProgress] = useState("");
+  const [feedback, setFeedback] = useState<Feedback>(false);
   const [failstack, setFailstack] = useState<string[]>([]);
   const [appError, setAppError] = useState<false | string>(false);
   const [fullWord, setFullWord] = useState<null | string>(null);
@@ -34,6 +39,7 @@ function App() {
     () => !gameOver && !gameWon,
     [gameOver, gameWon]
   );
+
   const refreshApp = () => {
     window.location = window.location;
   };
@@ -83,9 +89,23 @@ function App() {
         setAppError(error.message);
       });
     if (respons?.data) {
-      setProgress(respons.data.playerStatus.currentProgress);
-      setFailstack(respons.data.playerStatus.failstack);
+      const { playerStatus } = respons.data;
+      createFeedback(playerStatus);
+      setProgress(playerStatus.currentProgress);
+      setFailstack(playerStatus.failstack);
     }
+  };
+
+  const createFeedback = (playerStatus: PlayerStatus) => {
+    let feedback: Feedback = false;
+    if (failstack.length != playerStatus.failstack.length) {
+      feedback = "fail";
+    }
+    if (progress !== playerStatus.currentProgress) {
+      feedback = "sucess";
+    }
+    setFeedback(feedback);
+    setTimeout(() => setFeedback(false), 1000);
   };
 
   // Reveal word on game over
@@ -106,11 +126,16 @@ function App() {
   return (
     <>
       <AppError appError={appError} refreshApp={refreshApp} />
-      <DisplayAttemptLeft show={gamePlayable} failstack={failstack} />
-      <DisplayLettersNotInWord
-        show={gamePlayable && !!failstack.length}
-        failstack={failstack}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <DisplayLettersNotInWord
+          show={!!failstack.length && gamePlayable}
+          failstack={failstack}
+        />
+        <DisplayAttemptLeft show={gamePlayable} failstack={failstack} />
+      </div>
+
+      <DisplayFeedBack feedback={feedback} />
+
       <DialogWinner
         show={gameWon}
         resetGame={resetGame}

@@ -4,4 +4,6 @@ export const DisplayLettersNotInWord = (props: {
 }) =>
   props.show ? (
     <div>Letters not in word: {props.failstack.join(", ")}</div>
-  ) : null;
+  ) : (
+    <div>So far so good!</div>
+  );

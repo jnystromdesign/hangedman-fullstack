@@ -1,0 +1,25 @@
+@keyframes fade-up-and-scale {
+    from{
+        /* opacity: 0.5; */
+        /* font-size: 1rem; */
+        transform: translateY(5rem);
+    }
+    to{
+        opacity: 1;
+        /* font-size: 3rem; */
+        transform: translateY(0rem);
+    }
+}
+.display{
+    height: 13rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.indicator{
+    animation: fade-up-and-scale 300ms ease-out;
+    font-size: 3rem;
+}
+.indicator.fail{
+    animation: fade-up-and-scale 300ms reverse ease-out;
+}
